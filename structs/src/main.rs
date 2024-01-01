@@ -1,4 +1,5 @@
 #[derive(Debug)]
+#[allow(unused)]
 struct User {
     active: bool,
     username: String,
