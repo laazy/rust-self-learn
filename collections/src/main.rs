@@ -1,3 +1,5 @@
+mod tasks;
+
 fn vector() {
     let mut v = Vec::new();
     v.push(2);
@@ -150,4 +152,11 @@ fn main() {
     string();
     println!("hash_map:");
     hash_map();
+    println!("tasks:");
+    tasks::num_count(20);
+    println!("pig_latin:");
+    tasks::pig_latin("first");
+    tasks::pig_latin("apple");
+    println!("employee_api:");
+    tasks::employee_api();
 }
