@@ -47,14 +47,21 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn build(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("no enough arguments");
-        }
+    pub fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
+        args.next();
 
-        let query = args[1].clone();
-        let file_path = args[2].clone();
-        let ignore_case = env::var("IGNORE_CASE").map_or(false, |v| v == "1");
+        let query = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a query string"),
+        };
+
+        let file_path = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a file path"),
+        };
+
+        let ignore_case = env::var("IGNORE_CASE").is_ok();
+
         Ok(Config {
             query,
             file_path,
@@ -85,7 +92,7 @@ Pick three.";
             "hello".to_string(),
             "test.txt".to_string(),
         ];
-        let config = Config::build(&args);
+        let config = Config::build(args.into_iter());
         assert!(config.is_ok());
         let config = config.unwrap();
         assert_eq!(config.query, "hello");
@@ -95,7 +102,7 @@ Pick three.";
     #[test]
     fn test_build_not_enough_args() {
         let args = vec!["program".to_string()];
-        let config = Config::build(&args);
+        let config = Config::build(args.into_iter());
         assert!(config.is_err());
     }
 
