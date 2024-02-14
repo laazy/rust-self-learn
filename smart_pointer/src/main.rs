@@ -106,6 +106,9 @@ fn main() {
 
     println!("\n\n   reference loop:");
     reference_loop();
+
+    println!("\n\n   pure rc loop with unsafe:");
+    pure_rc_loop();
 }
 
 fn rc() {
@@ -190,4 +193,54 @@ fn reference_loop() {
     // Uncomment the next line to see that we have a cycle;
     // it will overflow the stack
     // println!("a next item = {:?}", a.tail());
+}
+
+fn pure_rc_loop() {
+    #[derive(Debug)]
+    enum List {
+        Cons(i32, Rc<List>),
+        Nil,
+    }
+    impl List {
+        fn tail(&self) -> Option<&Rc<List>> {
+            match self {
+                Cons(_, item) => Some(item),
+                Nil => None,
+            }
+        }
+        fn value(&self) -> i32 {
+            match self {
+                Cons(val, _) => *val,
+                Nil => 0,
+            }
+        }
+    }
+
+    use List::{Cons, Nil};
+    let a = Rc::new(Cons(5, Rc::new(Nil)));
+    println!("a initial rc count = {}", Rc::strong_count(&a));
+
+    let b = Rc::new(Cons(10, Rc::clone(&a)));
+    unsafe {
+        // 获取a的内部可变性，绕过Rc的不可变性
+        let a_ptr: *mut List = Rc::as_ptr(&a) as *mut List;
+
+        // 根据List枚举的内存布局，直接修改其中的Rc<List>
+        match &*a_ptr {
+            Cons(val, _) => {
+                *a_ptr = Cons(*val, Rc::clone(&b));
+            }
+            Nil => {}
+        }
+    }
+    println!("a rc count after changing a = {}", Rc::strong_count(&a));
+    println!("b rc count after changing a = {}", Rc::strong_count(&b));
+    // uncomment the next line to see that we have a cycle
+    // println!("a = {:?}", a);
+    // check the cycle is correct
+    assert_eq!(a.value(), b.tail().unwrap().value());
+    assert_eq!(b.value(), a.tail().unwrap().value());
+    use std::ptr;
+    assert!(ptr::eq(&*a, &**b.tail().unwrap()));
+    assert!(ptr::eq(&*b, &**a.tail().unwrap()));
 }
