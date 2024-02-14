@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 fn main() {
     #[derive(Debug)]
@@ -98,63 +98,61 @@ fn main() {
         println!("CustomSmartPointer dropped before the end of main.");
     }
 
+    println!("\n\n   rc:");
     rc();
 
+    println!("\n\n   RefCell:");
     ref_cell();
 
-    // reference loop
+    println!("\n\n   reference loop:");
     reference_loop();
 }
 
-fn rc(){
+fn rc() {
         // Rc<T> for multiple ownership
         enum List {
-            Cons2(i32, Rc<List>),
-            Nil2,
+        Cons(i32, Rc<List>),
+        Nil,
         }
     
-        use List::{Cons2, Nil2};
+    use List::{Cons, Nil};
     
-        let a = Rc::new(Cons2(5, Rc::new(Cons2(10, Rc::new(Nil2)))));
+    let a = Rc::new(Cons(5, Rc::new(Cons(10, Rc::new(Nil)))));
         println!("count after creating a = {}", Rc::strong_count(&a));
-        let _b = Cons2(3, Rc::clone(&a));
+    let _b = Cons(3, Rc::clone(&a));
         println!("count after creating b = {}", Rc::strong_count(&a));
         {
-            let _c = Cons2(4, Rc::clone(&a));
+        let _c = Cons(4, Rc::clone(&a));
             println!("count after creating c = {}", Rc::strong_count(&a));
         }
         println!("count after c goes out of scope = {}", Rc::strong_count(&a));
 }
 
-fn ref_cell(){
+fn ref_cell() {
         // RefCell<T> and the Interior Mutability Pattern
         #[derive(Debug)]
         enum List {
-            Cons3(Rc<RefCell<i32>>, Rc<List>),
-            Nil3,
+        Cons(Rc<RefCell<i32>>, Rc<List>),
+        Nil,
         }
     
-        use std::cell::RefCell;
-        use List::{Cons3, Nil3};
+    use List::{Cons, Nil};
     
         let value = Rc::new(RefCell::new(5));
     
-        let a = Rc::new(Cons3(Rc::clone(&value), Rc::new(Nil3)));
+    let a = Rc::new(Cons(Rc::clone(&value), Rc::new(Nil)));
     
-        let b = Cons3(Rc::new(RefCell::new(3)), Rc::clone(&a));
-        let c = Cons3(Rc::new(RefCell::new(4)), Rc::clone(&a));
+    let b = Cons(Rc::new(RefCell::new(3)), Rc::clone(&a));
+    let c = Cons(Rc::new(RefCell::new(4)), Rc::clone(&a));
     
         *value.borrow_mut() += 10;
     
         println!("a after = {:?}", a);
         println!("b after = {:?}", b);
         println!("c after = {:?}", c);
-    
 }
 
 fn reference_loop() {
-    use std::cell::RefCell;
-
     #[derive(Debug)]
     enum List {
         Cons(i32, RefCell<Rc<List>>),
