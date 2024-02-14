@@ -1,4 +1,7 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::RefCell,
+    rc::{Rc, Weak},
+};
 
 fn main() {
     #[derive(Debug)]
@@ -109,6 +112,9 @@ fn main() {
 
     println!("\n\n   pure rc loop with unsafe:");
     pure_rc_loop();
+
+    println!("\n\n   weak reference:");
+    weak_reference();
 }
 
 fn rc() {
@@ -243,4 +249,56 @@ fn pure_rc_loop() {
     use std::ptr;
     assert!(ptr::eq(&*a, &**b.tail().unwrap()));
     assert!(ptr::eq(&*b, &**a.tail().unwrap()));
+}
+
+fn weak_reference() {
+    #[allow(unused)]
+    #[derive(Debug)]
+    struct Node {
+        value: i32,
+        children: RefCell<Vec<Rc<Node>>>,
+        parent: RefCell<Weak<Node>>,
+    }
+
+    let leaf = Rc::new(Node {
+        value: 3,
+        parent: RefCell::new(Weak::new()),
+        children: RefCell::new(vec![]),
+    });
+
+    println!(
+        "leaf strong = {}, weak = {}",
+        Rc::strong_count(&leaf),
+        Rc::weak_count(&leaf),
+    );
+
+    {
+        let branch = Rc::new(Node {
+            value: 5,
+            parent: RefCell::new(Weak::new()),
+            children: RefCell::new(vec![Rc::clone(&leaf)]),
+        });
+
+        *leaf.parent.borrow_mut() = Rc::downgrade(&branch);
+
+        println!(
+            "branch strong = {}, weak = {}",
+            Rc::strong_count(&branch),
+            Rc::weak_count(&branch),
+        );
+
+        println!(
+            "leaf strong = {}, weak = {}",
+            Rc::strong_count(&leaf),
+            Rc::weak_count(&leaf),
+        );
+    }
+
+    println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
+    println!(
+        "leaf strong = {}, weak = {}",
+        Rc::strong_count(&leaf),
+        Rc::weak_count(&leaf),
+    );
+    // leaf.parent.borrow();
 }
