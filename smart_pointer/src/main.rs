@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 fn main() {
     #[derive(Debug)]
     enum List {
@@ -96,55 +98,62 @@ fn main() {
         println!("CustomSmartPointer dropped before the end of main.");
     }
 
-    // Rc<T> for multiple ownership
-    enum List2 {
-        Cons2(i32, Rc<List2>),
-        Nil2,
-    }
+    rc();
 
-    use std::rc::Rc;
-    use List2::{Cons2, Nil2};
-
-    let a = Rc::new(Cons2(5, Rc::new(Cons2(10, Rc::new(Nil2)))));
-    println!("count after creating a = {}", Rc::strong_count(&a));
-    let _b = Cons2(3, Rc::clone(&a));
-    println!("count after creating b = {}", Rc::strong_count(&a));
-    {
-        let _c = Cons2(4, Rc::clone(&a));
-        println!("count after creating c = {}", Rc::strong_count(&a));
-    }
-    println!("count after c goes out of scope = {}", Rc::strong_count(&a));
-
-    // RefCell<T> and the Interior Mutability Pattern
-    #[derive(Debug)]
-    enum List3 {
-        Cons3(Rc<RefCell<i32>>, Rc<List3>),
-        Nil3,
-    }
-
-    use std::cell::RefCell;
-    use List3::{Cons3, Nil3};
-
-    let value = Rc::new(RefCell::new(5));
-
-    let a = Rc::new(Cons3(Rc::clone(&value), Rc::new(Nil3)));
-
-    let b = Cons3(Rc::new(RefCell::new(3)), Rc::clone(&a));
-    let c = Cons3(Rc::new(RefCell::new(4)), Rc::clone(&a));
-
-    *value.borrow_mut() += 10;
-
-    println!("a after = {:?}", a);
-    println!("b after = {:?}", b);
-    println!("c after = {:?}", c);
+    ref_cell();
 
     // reference loop
     reference_loop();
 }
 
+fn rc(){
+        // Rc<T> for multiple ownership
+        enum List {
+            Cons2(i32, Rc<List>),
+            Nil2,
+        }
+    
+        use List::{Cons2, Nil2};
+    
+        let a = Rc::new(Cons2(5, Rc::new(Cons2(10, Rc::new(Nil2)))));
+        println!("count after creating a = {}", Rc::strong_count(&a));
+        let _b = Cons2(3, Rc::clone(&a));
+        println!("count after creating b = {}", Rc::strong_count(&a));
+        {
+            let _c = Cons2(4, Rc::clone(&a));
+            println!("count after creating c = {}", Rc::strong_count(&a));
+        }
+        println!("count after c goes out of scope = {}", Rc::strong_count(&a));
+}
+
+fn ref_cell(){
+        // RefCell<T> and the Interior Mutability Pattern
+        #[derive(Debug)]
+        enum List {
+            Cons3(Rc<RefCell<i32>>, Rc<List>),
+            Nil3,
+        }
+    
+        use std::cell::RefCell;
+        use List::{Cons3, Nil3};
+    
+        let value = Rc::new(RefCell::new(5));
+    
+        let a = Rc::new(Cons3(Rc::clone(&value), Rc::new(Nil3)));
+    
+        let b = Cons3(Rc::new(RefCell::new(3)), Rc::clone(&a));
+        let c = Cons3(Rc::new(RefCell::new(4)), Rc::clone(&a));
+    
+        *value.borrow_mut() += 10;
+    
+        println!("a after = {:?}", a);
+        println!("b after = {:?}", b);
+        println!("c after = {:?}", c);
+    
+}
+
 fn reference_loop() {
     use std::cell::RefCell;
-    use std::rc::Rc;
 
     #[derive(Debug)]
     enum List {
