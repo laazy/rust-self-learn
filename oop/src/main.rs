@@ -41,13 +41,15 @@ use crate::blog::Post; //, State, Draft};
 fn blog() {
     let mut post = Post::new();
 
-    post.add_text("I ate a salad for lunch today");
+    post.add_text("I ate a salad");
     assert_eq!("", post.content());
-
+    
     post.request_review();
     assert_eq!("", post.content());
-
+    post.add_text("random text");
+    
     post.reject();
+    post.add_text(" for lunch today");
     assert_eq!("", post.content());
 
     post.request_review();
@@ -62,11 +64,12 @@ use crate::blog_struct::Post as StructPost;
 fn blog_struct() {
     let mut post = StructPost::new();
 
-    post.add_text("I ate a salad for lunch today");
+    post.add_text("I ate a salad ");
     let post = post.request_review();
-
-    let post = post.reject().request_review();
-    let post = post.approve().approve();
+    
+    let mut post = post.reject();
+    post.add_text("for lunch today");
+    let post = post.request_review().approve().approve();
     assert_eq!("I ate a salad for lunch today", post.content());
 }
 pub mod blog_enum;
@@ -74,13 +77,15 @@ use crate::blog_enum::Post as EnumPost;
 fn blog_enum() {
     let mut post = EnumPost::new();
 
-    post.add_text("I ate a salad for lunch today");
+    post.add_text("I ate a salad");
     assert_eq!("", post.content());
-
+    
     post.request_review();
+    post.add_text("random text");
     assert_eq!("", post.content());
-
+    
     post.reject();
+    post.add_text(" for lunch today");
     assert_eq!("", post.content());
 
     post.request_review();

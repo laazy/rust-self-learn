@@ -18,7 +18,10 @@ impl Post {
         }
     }
     pub fn add_text(&mut self, text: &str) {
-        self.content.push_str(text);
+        match self.state {
+            State::Draft => self.content.push_str(text),
+            _ => (),
+        };
     }
     pub fn content(&self) -> &str {
         match self.state {
