@@ -65,6 +65,21 @@ impl State for PendingReview {
     }
 
     fn approve(self: Box<Self>) -> Box<dyn State> {
+        Box::new(DoubleCheck {})
+    }
+    fn reject(self: Box<Self>) -> Box<dyn State> {
+        Box::new(Draft {})
+    }
+}
+
+struct DoubleCheck {}
+
+impl State for DoubleCheck {
+    fn request_review(self: Box<Self>) -> Box<dyn State> {
+        self
+    }
+
+    fn approve(self: Box<Self>) -> Box<dyn State> {
         Box::new(Published {})
     }
     fn reject(self: Box<Self>) -> Box<dyn State> {

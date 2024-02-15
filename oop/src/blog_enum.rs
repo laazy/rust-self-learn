@@ -1,6 +1,7 @@
 enum State {
     Draft,
     PendingReview,
+    DoubleCheck,
     Published,
 }
 
@@ -33,13 +34,15 @@ impl Post {
     }
     pub fn approve(&mut self) {
         match self.state {
-            State::PendingReview => self.state = State::Published,
+            State::PendingReview => self.state = State::DoubleCheck,
+            State::DoubleCheck => self.state = State::Published,
             _ => (),
         };
     }
     pub fn reject(&mut self) {
         match self.state {
             State::PendingReview => self.state = State::Draft,
+            State::DoubleCheck => self.state = State::Draft,
             _ => (),
         };
     }
