@@ -37,4 +37,10 @@ impl Post {
             _ => (),
         };
     }
+    pub fn reject(&mut self) {
+        match self.state {
+            State::PendingReview => self.state = State::Draft,
+            _ => (),
+        };
+    }
 }

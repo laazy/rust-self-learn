@@ -47,6 +47,10 @@ fn blog() {
     post.request_review();
     assert_eq!("", post.content());
 
+    post.reject();
+    assert_eq!("", post.content());
+
+    post.request_review();
     post.approve();
     assert_eq!("I ate a salad for lunch today", post.content());
 }
@@ -58,6 +62,8 @@ fn blog_struct() {
 
     post.add_text("I ate a salad for lunch today");
     let post = post.request_review();
+
+    let post = post.reject().request_review();
     let post = post.approve();
     assert_eq!("I ate a salad for lunch today", post.content());
 }
@@ -72,8 +78,13 @@ fn blog_enum() {
     post.request_review();
     assert_eq!("", post.content());
 
+    post.reject();
+    assert_eq!("", post.content());
+
+    post.request_review();
     post.approve();
-    assert_eq!("I ate a salad for lunch today", post.content());}
+    assert_eq!("I ate a salad for lunch today", post.content());
+}
 fn main() {
     gui();
     blog();
