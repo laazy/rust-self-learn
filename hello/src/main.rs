@@ -34,8 +34,16 @@ fn handle_connection(mut stream: TcpStream) {
     let buf_reader = BufReader::new(&mut stream);
     println!("Thread reader at {:?}, {:?}", thread::current().id(), now());
     // TODO: Why this will block the thread only when request_line is same?
-    let request_line = buf_reader.lines().next().unwrap().unwrap();
+    // it seems like chrome do some trick behind two same http request.
+    // cURL does not have problem like this
+    let mut request_line = buf_reader.lines();
     println!("Thread line! at {:?}, {:?}", thread::current().id(), now());
+    let request_line = request_line.next();
+    println!("Thread next! at {:?}, {:?}", thread::current().id(), now());
+    let request_line = request_line.unwrap();
+    println!("Thread 1unwrap! at {:?}, {:?}", thread::current().id(), now());
+    let request_line = request_line.unwrap();
+    println!("Thread 2unwrap! at {:?}, {:?}", thread::current().id(), now());
     let start = time::Instant::now();
     println!(
         "Thread: {request_line} at {:?}, {:?}",
@@ -58,8 +66,9 @@ fn handle_connection(mut stream: TcpStream) {
 
     stream.write_all(response.as_bytes()).unwrap();
     println!(
-        "Thread: {request_line} at {:?} in {}",
+        "Thread: {request_line} at {:?} in {}, {:?}",
         thread::current().id(),
-        start.elapsed().as_secs()
+        start.elapsed().as_secs(),
+        now()
     );
 }
